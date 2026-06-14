@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Specialization Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f0f4f8;
+    color: #2d3748;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1a365d;
+    letter-spacing: 0.5px;
+  }
+
+  header p {
+    color: #718096;
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .score-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 24px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    min-width: 100px;
+  }
+
+  .score-box .label { font-size: 0.75rem; color: #718096; text-transform: uppercase; letter-spacing: 1px; }
+  .score-box .value { font-size: 1.6rem; font-weight: 700; color: #1a365d; }
+  .score-box.correct .value { color: #276749; }
+  .score-box.incorrect .value { color: #c53030; }
+
+  .part-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #3182ce;
+    background: #ebf8ff;
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .question-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    transition: box-shadow 0.2s;
+  }
+
+  .question-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+  .question-text {
+    font-size: 0.97rem;
+    font-weight: 600;
+    line-height: 1.55;
+    margin-bottom: 16px;
+    color: #1a202c;
+  }
+
+  .question-text span.num {
+    color: #3182ce;
+    margin-right: 6px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 9px; }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 9px;
+    border: 2px solid #e2e8f0;
+    background: #f7fafc;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    user-select: none;
+  }
+
+  .option:hover { border-color: #90cdf4; background: #ebf8ff; transform: translateX(2px); }
+
+  .option .opt-letter {
+    font-weight: 700;
+    color: #3182ce;
+    min-width: 18px;
+  }
+
+  .option.correct {
+    border-color: #48bb78;
+    background: #f0fff4;
+    color: #22543d;
+  }
+
+  .option.correct .opt-letter { color: #276749; }
+
+  .option.incorrect {
+    border-color: #fc8181;
+    background: #fff5f5;
+    color: #742a2a;
+  }
+
+  .option.incorrect .opt-letter { color: #c53030; }
+
+  .option.locked { cursor: default; pointer-events: none; }
+
+  .option.correct::after { content: " ✓"; font-weight: 700; color: #276749; }
+  .option.incorrect::after { content: " ✗"; font-weight: 700; color: #c53030; }
+
+  .explanation {
+    display: none;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #fffbeb;
+    border-left: 4px solid #f6ad55;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.88rem;
+    color: #7b341e;
+    line-height: 1.5;
+  }
+
+  .explanation.show { display: block; }
+
+  .explanation strong { color: #c05621; }
+
+  .progress-bar-wrap {
+    background: #e2e8f0;
+    border-radius: 99px;
+    height: 6px;
+    margin-bottom: 28px;
+  }
+
+  .progress-bar-fill {
+    height: 6px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #3182ce, #63b3ed);
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .reset-btn {
+    display: block;
+    margin: 36px auto 0;
+    padding: 12px 36px;
+    background: #1a365d;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s;
+  }
+
+  .reset-btn:hover { background: #2c5282; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.4rem; }
+    .question-card { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 English Specialization Quiz</h1>
+  <p>Double-click an option to select your answer</p>
+</header>
+
+<div class="scoreboard">
+  <div class="score-box">
+    <div class="label">Total</div>
+    <div class="value" id="total-count">40</div>
+  </div>
+  <div class="score-box correct">
+    <div class="label">Correct</div>
+    <div class="value" id="correct-count">0</div>
+  </div>
+  <div class="score-box incorrect">
+    <div class="label">Incorrect</div>
+    <div class="value" id="incorrect-count">0</div>
+  </div>
+  <div class="score-box">
+    <div class="label">Remaining</div>
+    <div class="value" id="remaining-count">40</div>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progress-bar"></div>
+</div>
+
+<div id="quiz-container"></div>
+
+<button class="reset-btn" onclick="resetQuiz()">🔄 Reset Quiz</button>
+
+<script>
+const quizData = [
+  // Part I: Language Teaching Methods
+  { part: "Part I: Language Teaching Methods", q: "In a classroom where learners translate proverbs from English to Filipino and analyze their grammatical forms, and the teacher uses L1 for instruction, which method is most evident?", options: ["Direct Method","Grammar-Translation Method","Suggestopedia","Total Physical Response"], answer: 1, explanation: "The Grammar-Translation Method (GTM) focuses on translating texts, analyzing grammatical forms, and uses the learner's native language (L1) as the medium of instruction." },
+  { part: "Part I: Language Teaching Methods", q: "Teacher whispers corrections while background music plays and learners sit comfortably to reduce affective filter.", options: ["Suggestopedia","Direct Method","CLL","ALM"], answer: 0, explanation: "Suggestopedia, developed by Lozanov, uses music, relaxed atmosphere, and peripheral learning to lower anxiety and reduce the affective filter." },
+  { part: "Part I: Language Teaching Methods", q: "Teacher gives commands while learners respond physically, delaying verbal production.", options: ["Silent Way","Audio-Lingual Method","Total Physical Response","Grammar-Translation Method"], answer: 2, explanation: "Total Physical Response (TPR) by James Asher involves the teacher giving commands and learners responding with physical actions, delaying speaking until learners feel ready." },
+  { part: "Part I: Language Teaching Methods", q: "Dialogue memorization and chain drills are central because language learning is habit-formation.", options: ["Direct Method","Grammar Translation Method","Total Physical Response","Audio-Lingual Method"], answer: 3, explanation: "The Audio-Lingual Method (ALM) is based on behaviorist theory — language is habit formation through repetition, drills, and memorization of dialogues." },
+  { part: "Part I: Language Teaching Methods", q: "Learners use Cuisenaire rods to discover patterns with minimal teacher input.", options: ["Silent Way","Suggestopedia","Total Physical Response","Audio-Lingual Method"], answer: 0, explanation: "The Silent Way by Caleb Gattegno uses Cuisenaire rods and color charts. The teacher stays mostly silent, encouraging learners to discover language patterns independently." },
+
+  // Part II: Communicative Competence
+  { part: "Part II: Communicative Competence", q: "During a debate, Shaira rephrases a complex argument after noticing confused reactions from the audience. What competency does she display to adjust listener comprehension?", options: ["Strategic competency","Linguistic competency","Discourse competency","Sociolinguistic competency"], answer: 0, explanation: "Strategic competence refers to the ability to use verbal and non-verbal strategies to compensate for breakdowns in communication or to enhance effectiveness — like rephrasing to aid understanding." },
+  { part: "Part II: Communicative Competence", q: "When students learn how to sequence ideas logically in essays, they are specifically strengthening which aspect of communication?", options: ["Sociolinguistic competency","Strategic competency","Linguistic competency","Discourse competency"], answer: 3, explanation: "Discourse competence involves the ability to combine sentences and ideas into a coherent and cohesive whole — including logical sequencing in writing." },
+  { part: "Part II: Communicative Competence", q: "A foreign student avoids literal translations and communicates according to local customs, observing politeness markers. Which competency is most involved?", options: ["Linguistic competency","Strategic competency","Sociolinguistic competency","Discourse competency"], answer: 2, explanation: "Sociolinguistic competence is the ability to use language appropriately in different social and cultural contexts — including understanding local customs and politeness conventions." },
+  { part: "Part II: Communicative Competence", q: "A student miscommunicates because he uses grammatically valid sentences but culturally inappropriate expressions. Which competency does he lack?", options: ["Sociolinguistic competency","Discourse competency","Linguistic competency","Strategic competency"], answer: 0, explanation: "Sociolinguistic competence governs cultural appropriateness. The student has grammatical knowledge but lacks the sociolinguistic awareness needed for culturally suitable expression." },
+  { part: "Part II: Communicative Competence", q: "While presenting, the speaker notices the audience losing interest and alters the pacing and examples accordingly. What competency drives this adaptation?", options: ["Discourse competency","Strategic competency","Linguistic competency","Sociolinguistic competency"], answer: 1, explanation: "Strategic competence enables speakers to adapt their communication in real-time — such as changing pacing or examples to re-engage a drifting audience." },
+
+  // Part III: WAIVE Principles
+  { part: "Part III: WAIVE Principles", q: "Upon entering the classroom, Teacher Jessa greets her students cheerfully, smiles, and establishes a friendly tone to lessen anxiety and set a positive environment before instruction. Which WAIVE principle is demonstrated?", options: ["Welcoming","Accommodating","Valuing","Evaluating"], answer: 0, explanation: "Welcoming in the WAIVE framework refers to creating a warm, positive environment at the start of class to reduce anxiety and make students feel comfortable." },
+  { part: "Part III: WAIVE Principles", q: "While conducting a group activity, Mr. Lopez adjusts his instructions for students with different learning paces and provides alternative materials for those who struggle with reading. This exemplifies which WAIVE component?", options: ["Welcoming","Evaluating","Invigorating","Accommodating"], answer: 3, explanation: "Accommodating involves adjusting instruction and materials to meet the diverse learning needs and paces of individual students." },
+  { part: "Part III: WAIVE Principles", q: "Which could be seen in the evaluating part of WAIVE?", options: ["Engaging activities","Lesson proper","Warm introduction","Feedback"], answer: 3, explanation: "The Evaluating component of WAIVE involves assessing student learning, which is typically done through feedback, quizzes, or reflective activities." },
+  { part: "Part III: WAIVE Principles", q: "Teacher Sandra discussed the topic in her class by employing several teaching strategies. This falls under ___.", options: ["Welcoming","Invigorating","Valuing","Evaluating"], answer: 1, explanation: "Invigorating refers to the lesson proper — where the teacher actively delivers content using engaging and varied instructional strategies." },
+  { part: "Part III: WAIVE Principles", q: "Teacher Mandy made sure that her students are not anxious and feel confident in her classroom. Which does this show?", options: ["Invigorating","Evaluating","Welcoming","Accommodating"], answer: 2, explanation: "Welcoming includes ensuring a psychologically safe and anxiety-free learning environment where students feel confident and at ease." },
+
+  // Part IV: Speaking and Listening Difficulties
+  { part: "Part IV: Speaking and Listening Difficulties", q: 'When one says "uhhh", "y\'know", and other fillers in conversations, there is a risk of getting distracted and not understanding the communication flow. Which speaking difficulty does this reflect?', options: ["Colloquial Language","Reduced Forms","Clustering","Performance Variables"], answer: 3, explanation: "Performance Variables include hesitation phenomena like fillers (uh, um, y'know), false starts, and pauses that disrupt the natural flow of speech." },
+  { part: "Part IV: Speaking and Listening Difficulties", q: "When the speaking difficulty is about the rate of delivery, what scenario could be observed?", options: ["The speaker uses slang terms that may not be understandable to some listeners.","The speaker speaks too fast or too slow.","The word syllabication of the speaker may be different from that of the receiver.","All of the above"], answer: 1, explanation: "Rate of Delivery refers specifically to the speed at which a speaker talks — speaking too fast or too slow can make it difficult for listeners to comprehend." },
+  { part: "Part IV: Speaking and Listening Difficulties", q: "What might be an implication of a speaking difficulty focused on reduced forms?", options: ["Lack of pause in the speech","Too many fillers in the speech","Use of contracted words in the speech","Use of slang terms in the speech"], answer: 2, explanation: "Reduced Forms refer to the natural shortening or contracting of words in spoken language (e.g., 'gonna' for 'going to', 'wanna' for 'want to'), which may be difficult for some listeners to decode." },
+  { part: "Part IV: Speaking and Listening Difficulties", q: "Which classroom listening difficulty mainly involves the prosodic features?", options: ["Performance Variables","Reduced Forms","Rate of Delivery","Stress, rhythm, and intonation"], answer: 3, explanation: "Stress, Rhythm, and Intonation are prosodic features — the musical elements of speech — and pose significant listening challenges when they differ from the listener's expectations." },
+  { part: "Part IV: Speaking and Listening Difficulties", q: 'After Jake listened to the podcast, he was left with many questions as the words used by the speaker such as "Lit", "Bop", "ROFL" are foreign to him. What listening difficulty does this show?', options: ["Redundancy","Reduced Forms","Clustering","Colloquial Language"], answer: 3, explanation: "Colloquial Language refers to informal, everyday expressions, slang, and internet language (like 'Lit', 'Bop', 'ROFL') that may be unfamiliar to non-native or less exposed listeners." },
+
+  // Part V: Instructional Materials
+  { part: "Part V: Instructional Materials", q: "The book that serves as the main reference for an entire course and is usually approved by the school is called a:", options: ["Workbook","Textbook","Module","Reference Book"], answer: 1, explanation: "A Textbook is the primary, school-approved instructional material that serves as the central reference for an entire course or subject." },
+  { part: "Part V: Instructional Materials", q: "Teacher Mila asks her learners to answer exercises that reinforce grammar lessons taught from the main text. Which instructional material is she most likely using?", options: ["Teacher's Manual","Workbook","Reference Book","Textbook"], answer: 1, explanation: "A Workbook provides supplementary exercises and activities that reinforce lessons found in the main textbook, allowing students to practice skills." },
+  { part: "Part V: Instructional Materials", q: "The guide that provides the teacher with lesson objectives, suggested strategies, and explanations of textbook content is known as:", options: ["Work Text","Teacher's Guide","Module","Reference Book"], answer: 1, explanation: "A Teacher's Guide (or Teacher's Manual) provides educators with lesson objectives, instructional strategies, answer keys, and explanations to support effective teaching." },
+  { part: "Part V: Instructional Materials", q: "Teacher Neil supplements his lesson by showing an educational documentary and an online simulation game. These are examples of:", options: ["Textbook","Multimedia Materials","Reference Book","Work Text"], answer: 1, explanation: "Multimedia Materials include audio-visual and digital resources such as documentaries, videos, simulations, and interactive games used to supplement instruction." },
+  { part: "Part V: Instructional Materials", q: "In preparing for distance learning, Teacher Rhoda designs a material that allows independent and self-paced learning with built-in tests. She develops a:", options: ["Module","Work Text","Workbook","Multimedia Material"], answer: 0, explanation: "A Module is a self-contained learning package designed for independent, self-paced learning, often including lessons, activities, and built-in assessments — ideal for distance learning." },
+
+  // Part VI: Methods and Approaches (Extended)
+  { part: "Part VI: Methods and Approaches (Extended)", q: "What method is used when students learn how to use words properly; next, they learn to read and write; They use color charts and rods to help them with the pronunciation sounds; and teacher talking time is minimal?", options: ["TPR","Silent Way","Suggestopedia","CCL"], answer: 1, explanation: "The Silent Way by Gattegno minimizes teacher talk and uses Cuisenaire rods and color-coded pronunciation charts to help learners discover language rules." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "What is the role of teachers in Grammar Translation Method?", options: ["Assessor","Evaluator","Facilitator","Initiator"], answer: 0, explanation: "In the Grammar-Translation Method, the teacher acts as the authority and assessor — directing all activities, providing translations, and evaluating student accuracy in grammar and translation tasks." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "Which method does Teacher May use when she instructs her students not to use the native language and instead tell them to figure out the grammar rules for themselves as they are encouraged to speak the target language at all times?", options: ["Direct","Communicative","Immersion","Audio-lingual"], answer: 0, explanation: "The Direct Method prohibits the use of the native language and encourages inductive grammar learning — students discover rules through exposure and use of the target language only." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "The task of the language teacher is to create the best conditions for learning. In addition to this general function, a teacher plays specific roles in different stages of the learning stages. What are these stages? I. Presentation  II. Practice  III. Production  IV. Performance", options: ["I, II","I, III","I, II, III","I, II, III, IV"], answer: 2, explanation: "The PPP (Presentation, Practice, Production) model is the standard framework for language teaching stages: Presentation introduces the language, Practice reinforces it, and Production allows free use." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "Which skill is common in Audio-Lingual Method?", options: ["Translating","Summarizing","Parroting","Brainstorming"], answer: 2, explanation: "Parroting (mimicry and repetition of model sentences) is central to the Audio-Lingual Method, where learners repeat dialogues and patterns to form language habits." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "A teacher requires students to translate a passage from English to their native tongue, analyze verb forms, and then memorize equivalent vocabulary. Which method is being used?", options: ["Direct Method","Grammar-Translation Method","Audio-Lingual Method","Silent Way"], answer: 1, explanation: "This describes the Grammar-Translation Method: translation between languages, explicit grammatical analysis, and vocabulary memorization are its defining features." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "In her English class, Teacher Clara avoids translation and instead uses realia, gestures, and situational cues to teach vocabulary and grammar inductively. This aligns with which approach?", options: ["Direct Method","Grammar-Translation Method","Audio-Lingual Method","Community Language Learning"], answer: 0, explanation: "The Direct Method rejects translation and relies on real objects (realia), gestures, and context to teach meaning directly in the target language." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: '"Language learning is habit formation through stimulus-response-reinforcement." This principle underlies which language teaching method?', options: ["Direct Method","Silent Way","Audio-Lingual Method","Community Language Learning"], answer: 2, explanation: "The Audio-Lingual Method is rooted in behaviorism — the stimulus-response-reinforcement model — where language habits are formed through repetitive drills." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: 'Teacher Ron uses a series of commands such as "Stand up," "Open your book," and "Walk to the door," to teach English imperatives. Which method exemplifies this?', options: ["Total Physical Response Method","Audio-Lingual Method","Grammar-Translation Method","Suggestopedia Method"], answer: 0, explanation: "Total Physical Response (TPR) uses imperative commands that learners act out physically, making it an ideal method for teaching action verbs and imperatives." },
+  { part: "Part VI: Methods and Approaches (Extended)", q: "A teacher plays Baroque music while learners engage in relaxed reading and dramatized dialogues. Which method is at work?", options: ["Silent Way","Suggestopedia Method","Total Physical Response","Direct Method"], answer: 1, explanation: "Suggestopedia incorporates Baroque music, dramatized readings, and a relaxed environment to make learning comfortable and subconscious." },
+
+  // Part VII: Competencies and Vocabulary
+  { part: "Part VII: Competencies and Vocabulary", q: 'During an oral interview, a student struggles to recall a word but smoothly says, "It\'s the opposite of expensive," instead of pausing or switching languages. Which communicative competence is mainly demonstrated?', options: ["Grammatical competence","Sociolinguistic competence","Discourse competence","Strategic competence"], answer: 3, explanation: "Strategic competence includes using circumlocution (describing a word you can't recall) and other compensatory strategies to keep communication flowing." },
+  { part: "Part VII: Competencies and Vocabulary", q: 'When Teacher Vann asks students to role-play a job interview, one learner uses polite forms such as "Would you mind if I sit here?" instead of "Can I sit?" This behavior shows sensitivity to:', options: ["Grammatical competence","Sociolinguistic competence","Discourse competence","Strategic competence"], answer: 1, explanation: "Sociolinguistic competence involves choosing language that is contextually and socially appropriate — including using formal and polite registers in formal settings like job interviews." },
+  { part: "Part VII: Competencies and Vocabulary", q: "Which word falls under Tier 1 vocabulary?", options: ["sing","syncope","spectacle","all of the above"], answer: 0, explanation: "Tier 1 vocabulary consists of basic, everyday words that most native speakers know from early childhood (e.g., 'sing', 'run', 'happy'). 'Syncope' is Tier 3 (technical/domain-specific), and 'spectacle' is Tier 2 (academic)." },
+  { part: "Part VII: Competencies and Vocabulary", q: "Which is an example of a reference book?", options: ["Encyclopedia","Wattpad","Journal","Student-produced thesis"], answer: 0, explanation: "An Encyclopedia is a classic reference book — a comprehensive source of information on a wide range of topics used to look up facts. Wattpad is an online platform, a journal may be academic or personal, and a student thesis is a research document." },
+  { part: "Part VII: Competencies and Vocabulary", q: 'After a challenging class discussion, Teacher Rey tells his students, "I appreciate how you listened to one another and supported your peers\' ideas." He then asks them to reflect on what they learned from the interaction. Which WAIVE component is best illustrated?', options: ["Welcoming","Accommodating","Valuing","Evaluating"], answer: 2, explanation: "Valuing in WAIVE involves affirming students' contributions, showing appreciation, and fostering a sense of belonging and worth — as Teacher Rey does by acknowledging their collaborative behavior." }
+];
+
+let correctCount = 0;
+let incorrectCount = 0;
+let answered = 0;
+
+// Generate sounds using Web Audio API
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    if (type === 'correct') {
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
+      oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.5);
+    } else {
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(220, ctx.currentTime);
+      oscillator.frequency.setValueAtTime(180, ctx.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.4);
+    }
+  } catch (e) { /* audio not supported */ }
+}
+
+function updateScoreboard() {
+  document.getElementById('correct-count').textContent = correctCount;
+  document.getElementById('incorrect-count').textContent = incorrectCount;
+  document.getElementById('remaining-count').textContent = 40 - answered;
+  document.getElementById('progress-bar').style.width = (answered / 40 * 100) + '%';
+}
+
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  let lastPart = '';
+
+  quizData.forEach((item, idx) => {
+    if (item.part !== lastPart) {
+      const partDiv = document.createElement('div');
+      partDiv.innerHTML = `<div class="part-label">${item.part}</div>`;
+      partDiv.style.marginTop = idx === 0 ? '0' : '28px';
+      partDiv.style.marginBottom = '10px';
+      container.appendChild(partDiv);
+      lastPart = item.part;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-${idx}`;
+
+    const qText = document.createElement('div');
+    qText.className = 'question-text';
+    qText.innerHTML = `<span class="num">${idx + 1}.</span>${item.q}`;
+    card.appendChild(qText);
+
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'options';
+
+    const letters = ['A', 'B', 'C', 'D'];
+    item.options.forEach((opt, oIdx) => {
+      const optEl = document.createElement('div');
+      optEl.className = 'option';
+      optEl.innerHTML = `<span class="opt-letter">${letters[oIdx]}.</span><span>${opt}</span>`;
+      optEl.addEventListener('dblclick', () => handleAnswer(idx, oIdx, optEl, optionsDiv, card));
+      optionsDiv.appendChild(optEl);
+    });
+
+    card.appendChild(optionsDiv);
+
+    const explanation = document.createElement('div');
+    explanation.className = 'explanation';
+    explanation.innerHTML = `<strong>Explanation:</strong> ${item.explanation}`;
+    card.appendChild(explanation);
+
+    container.appendChild(card);
+  });
+}
+
+function handleAnswer(qIdx, selectedIdx, optEl, optionsDiv, card) {
+  const item = quizData[qIdx];
+  if (card.dataset.answered) return; // already answered
+  card.dataset.answered = 'true';
+  answered++;
+
+  const allOptions = optionsDiv.querySelectorAll('.option');
+  allOptions.forEach(o => o.classList.add('locked'));
+
+  if (selectedIdx === item.answer) {
+    optEl.classList.add('correct');
+    correctCount++;
+    playSound('correct');
+  } else {
+    optEl.classList.add('incorrect');
+    allOptions[item.answer].classList.add('correct');
+    incorrectCount++;
+    playSound('incorrect');
+  }
+
+  card.querySelector('.explanation').classList.add('show');
+  updateScoreboard();
+}
+
+function resetQuiz() {
+  correctCount = 0;
+  incorrectCount = 0;
+  answered = 0;
+  updateScoreboard();
+  buildQuiz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildQuiz();
+updateScoreboard();
+</script>
+</body>
+</html>
